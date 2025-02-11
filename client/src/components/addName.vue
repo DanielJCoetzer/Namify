@@ -31,18 +31,20 @@
   </template>
 <script>
 import { Api } from '@/Api'
+
 export default {
   data() {
     return {
-      name: '',
-      nameState: null,
-      submittedNames: []
+      name: '', // Stores the name input value
+      nameState: null, // Stores the validity state of the name input (true/false/null)
+      submittedNames: [] // Array to store submitted names (currently unused)
     }
   },
   methods: {
+    // Creates a new name by sending a POST request to the API
     createName() {
       const newName = {
-        _id: this.name,
+        _id: this.name, // The entered name is used as the ID
         likes: 0,
         dislikes: 0,
         comments: [],
@@ -50,40 +52,45 @@ export default {
       }
       Api.post('v1/names', newName)
         .catch(error => {
-          console.log(error)
+          console.log(error) // Log any errors during API call
         })
-      this.$router.push('/name/' + this.name)
+      this.$router.push('/name/' + this.name) // Redirect to the newly created name's page
     },
+
+    // Checks the validity of the form using Bootstrap Vue's form validation
     checkFormValidity() {
-      const valid = this.$refs.form.checkValidity()
-      this.nameState = valid
-      return valid
+      const valid = this.$refs.form.checkValidity() // Get the validation result
+      this.nameState = valid // Update the nameState
+      return valid // Return the validation result
     },
+
+    // Resets the modal form fields
     resetModal() {
-      this.name = ''
-      this.nameState = null
+      this.name = '' // Clear the name input
+      this.nameState = null // Reset the name state
     },
+
+    // Handles the "OK" button click in the modal, preventing default close and triggering submit
     handleOk(bvModalEvent) {
-      // Prevent modal from closing
-      bvModalEvent.preventDefault()
-      // Trigger submit handler
-      this.handleSubmit()
+      bvModalEvent.preventDefault() // Prevent the modal from closing immediately
+      this.handleSubmit() // Call the submit handler
     },
+
+    // Handles form submission, including validation and API call
     handleSubmit() {
-      // Exit when the form isn't valid
-      if (!this.checkFormValidity()) {
-        return
+      if (!this.checkFormValidity()) { // Check form validity before submission
+        return // Exit if the form is not valid
       }
-      // Push the name to submitted names
-      this.createName()
-      // Hide the modal manually
+
+      this.createName() // Create the name if the form is valid
+
+      // Hide the modal manually after successful submission
       this.$nextTick(() => {
-        this.$bvModal.hide('modal-prevent-closing')
+        this.$bvModal.hide('modal-prevent-closing') // Hide the modal using its ID
       })
     }
   }
 }
-
 </script>
 <style>
   @media(max-width: 768px){
