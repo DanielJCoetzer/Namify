@@ -50,17 +50,18 @@ import LogOut from './components/logOut.vue'
 export default {
   data() {
     return {
-      text: '',
-      shuffleText: '',
-      hasAccount: false
+      text: '', // Stores the search input value
+      shuffleText: '', // Stores the shuffled name ID
+      hasAccount: false // Tracks the user's login status
     }
   },
   components: { AddName, LogOut },
   mounted() {
-    this.checkLogedIn()
-    window.addEventListener('load', this.checkLogedIn)
+    this.checkLogedIn() // Check login status on mount
+    window.addEventListener('load', this.checkLogedIn) // Check login status on window load
   },
   methods: {
+    // Fetches a random name ID from the API
     Shuffle() {
       Api.get('v1/names/shuffle')
         .then((response) => {
@@ -74,6 +75,7 @@ export default {
     onWindowLoad() {
       this.checkLogedIn()
     },
+    // Checks if a token exists in local storage to determine login status
     checkLogedIn() {
       if (localStorage.getItem('token') === null) {
         this.hasAccount = false
