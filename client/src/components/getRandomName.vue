@@ -8,41 +8,46 @@
 </template>
 <script>
 import { Api } from '@/Api'
+
 export default {
   data() {
     return {
-      searchQuery: null,
-      names: {
-        names: {}
+      searchQuery: null, // Stores the user's search input
+      names: { // Stores the names fetched from the API
+        names: {} // Nested object to hold the array of names (structure from API response)
       },
-      value: null
+      value: null // Unused data property - consider removing
     }
   },
   computed: {
+    // Computes the filtered list of names based on the search query
     resultQuery() {
-      if (this.searchQuery) {
-        return this.names.names.filter(item => {
-          return this.searchQuery
-            .toLowerCase()
-            .split(' ')
-            .every(v => item.toLowerCase().includes(v))
-        })
+      if (this.searchQuery) { // Check if there's a search query
+        const lowerCaseQuery = this.searchQuery.toLowerCase(); // Convert query to lowercase for case-insensitive search
+        const queryWords = lowerCaseQuery.split(' '); // Split the search query into individual words
+
+        return this.names.names.filter(item => { // Filter the names array
+          const lowerCaseItem = item.toLowerCase(); // Convert item to lowercase for case-insensitive search
+          return queryWords.every(word => lowerCaseItem.includes(word)); // Check if every word in the query is present in the name
+        });
       } else {
-        return this.names.names
+        return this.names.names; // Return the original list if there's no search query
       }
     }
   },
   mounted() {
-    console.log('Page is loaded!')
+    console.log('Page is loaded!');
+
+    // Fetch the list of names from the API when the component is mounted
     Api.get('/v1/names')
       .then((response) => {
-        console.log(response)
-        this.names = response.data
+        console.log(response); // Log the API response (for debugging)
+        this.names = response.data; // Assign the fetched data to the names object
       })
       .catch((error) => {
-        this.names = []
-        console.log(error)
-      })
+        this.names.names = []; // Set names.names to an empty array in case of an error to prevent errors in the template
+        console.error(error); // Log the error (use console.error for errors)
+      });
   }
 }
 </script>
