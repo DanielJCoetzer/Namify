@@ -8,40 +8,44 @@
 </template>
 <script>
 import { Api } from '@/Api'
+
 export default {
   data() {
     return {
-      searchQuery: null,
-      names: {
-        names: {}
+      searchQuery: null, // Stores the user's search input
+      names: { // Stores the names fetched from the API
+        names: {} // Nested object to hold the array of names (structure from API response)
       },
-      value: null
+      value: null // Unused data property
     }
   },
   computed: {
+    // Computes the filtered list of names based on the search query
     resultQuery() {
-      if (this.searchQuery) {
-        return this.names.names.filter(item => {
-          return this.searchQuery
+      if (this.searchQuery) { // Check if there's a search query
+        return this.names.names.filter(item => { // Filter the names array
+          return this.searchQuery // The original filter condition was always true.
             .toLowerCase()
-            .split(' ')
-            .every(v => item.toLowerCase().includes(v))
+            .split(' ') // Split the search query into individual words
+            .every(v => item.toLowerCase().includes(v)) // Check if every word in the query is present in the name
         })
       } else {
-        return this.names.names
+        return this.names.names // Return the original list if there's no search query
       }
     }
   },
   mounted() {
     console.log('Page is loaded!')
+
+    // Fetch the list of names from the API when the component is mounted
     Api.get('/v1/names')
       .then((response) => {
-        console.log(response)
-        this.names = response.data
+        console.log(response) // Log the API response
+        this.names = response.data // Assign the fetched data to the names object
       })
       .catch((error) => {
-        this.names = []
-        console.log(error)
+        this.names = [] // Set names to an empty array in case of an error
+        console.log(error) // Log the error
       })
   }
 }
