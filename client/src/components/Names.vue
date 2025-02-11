@@ -62,15 +62,15 @@ import likedComment from './likeComment.vue'
 export default {
   data() {
     return {
-      message: 'none',
-      tagMessage: 'Add a #tag',
-      addTagClicked: false,
-      newTag: '',
-      hasAccount: false,
-      accountName: '',
-      accountEmail: '',
-      name: {
-        comments: [{
+      message: 'none', // Stores error messages or status updates
+      tagMessage: 'Add a #tag', // Message displayed for tag input
+      addTagClicked: false, // Tracks whether the "add tag" button has been clicked
+      newTag: '', // Stores the new tag input value
+      hasAccount: false, // Tracks user login status
+      accountName: '', // Stores the logged-in user's name
+      accountEmail: '', // Stores the logged-in user's email
+      name: { // Stores the name data fetched from the API
+        comments: [{ // Array of comments for the name
           _id: '',
           text: '',
           likes: 0,
@@ -78,13 +78,13 @@ export default {
           name: '',
           __v: 0
         }],
-        tags: [],
+        tags: [], // Array of tags associated with the name
         _id: '',
         likes: 0,
         dislikes: 0,
         __v: 0
       },
-      topComment: {
+      topComment: { // Stores the comment with the most likes
         _id: '',
         text: '',
         likes: 0,
@@ -92,57 +92,61 @@ export default {
         name: '',
         __v: 0
       },
-      newComment: ''
+      newComment: '' // Stores the new comment input value
     }
   },
   components: { likeName, likedComment },
   mounted() {
-    this.getName()
+    this.getName() // Fetch the name data on component mount
     if (localStorage.getItem('token') === null) {
-      this.hasAccount = false
+      this.hasAccount = false // Set hasAccount to false if no token
     } else {
-      this.hasAccount = true
-      this.getAccount()
+      this.hasAccount = true // Set hasAccount to true if token exists
+      this.getAccount() // Fetch account details if logged in
     }
   },
   methods: {
+    // Fetches name data from the API based on the route parameter
     getName() {
       Api.get('/v1/names/' + this.$route.params.id)
         .then(response => {
-          this.name = response.data
+          this.name = response.data // Assign the fetched data to the name object
           if (this.name.comments.length > 0) {
-            this.topComment = this.name.comments[0]
+            this.topComment = this.name.comments[0] // Initialize topComment with the first comment
+            // Find the comment with the most likes
             for (let i = 0; i < this.name.comments.length; i++) {
               if (this.topComment.likes < this.name.comments[i].likes) {
                 this.topComment = this.name.comments[i]
               }
             }
           } else {
-            this.topComment.text = 'This name is so unpopular that it does not have any comments yet.'
+            this.topComment.text = 'This name is so unpopular that it does not have any comments yet.' // Set a default message if no comments
           }
         })
         .catch(error => {
-          this.message = error
-          this.$router.push('/404')
+          this.message = error // Store the error message
+          this.$router.push('/404') // Redirect to 404 page on error
         })
     },
+    // Fetches account details from the API if the user is logged in
     getAccount() {
       Api.get('/v1/accounts', { headers: { token: localStorage.getItem('token') } })
         .then(response => {
           this.accountName = response.data.user.account.name
           this.accountEmail = response.data.user.account.email
-          this.likedComments = response.data.user.account.likedComments
+          this.likedComments = response.data.user.account.likedComments // Assuming this data is needed
         })
     },
+    // Adds a new comment to the name and sends it to the API
     addComment() {
       const newComment = {
-        _id: this.name._id + String(this.name.comments.length) + String(this.newComment.length + Math.floor(Math.random() * this.name.comments.length)),
+        _id: this.name._id + String(this.name.comments.length) + String(this.newComment.length + Math.floor(Math.random() * this.name.comments.length)), // Generates a unique ID
         text: this.newComment,
         likes: 0,
         dislikes: 0,
         name: this.accountName
       }
-      this.name.comments.push(newComment)
+      this.name.comments.push(newComment) // Optimistically update the comments array
       Api.post('/v1/names/' + this.name._id + '/comments', newComment)
         .then(response => {
           console.log(response)
@@ -151,6 +155,7 @@ export default {
           console.log(error)
         })
     },
+    // Adds a new tag to the name and sends it to the API
     addTag() {
       let duplicate = false
       const addTag = this.newTag
@@ -158,28 +163,28 @@ export default {
         _id: this.newTag
       }
       if (addTag === '') {
-        duplicate = true
+        duplicate = true // Prevent adding empty tags
       }
       for (let i = 0; i <= this.name.tags.length; i++) {
         if (addTag === this.name.tags[i]) {
-          this.tagMessage = 'Tag exists'
+          this.tagMessage = 'Tag exists' // Display message if tag already exists
           duplicate = true
         }
       }
-      this.newTag = ''
+      this.newTag = '' // Clear the tag input field
       if (duplicate === false) {
-        this.addTagClicked = false
-        this.tagMessage = 'Add a tag'
-        Api.post('/v1/tags', postTag)
+        this.addTagClicked = false // Reset addTagClicked flag
+        this.tagMessage = 'Add a tag' // Reset tag message
+        Api.post('/v1/tags', postTag) // Create the tag if it doesn't exist
           .then(response => {
             console.log(response)
           })
           .catch(error => {
             console.log(error)
           })
-        Api.patch('/v1/names/' + this.name._id + '/tags/' + addTag)
+        Api.patch('/v1/names/' + this.name._id + '/tags/' + addTag) // Add the tag to the name
           .then(response => {
-            this.name.tags.push(addTag)
+            this.name.tags.push(addTag) // Optimistically update the tags array
             console.log(response)
           })
           .catch(error => {
@@ -187,17 +192,19 @@ export default {
           })
       }
     },
+    // Deletes a comment from the name and sends the delete request to the API
     deleteComment(comment) {
       Api.delete('/v1/names/' + this.name._id + '/comments/' + comment._id)
-      const index = this.name.comments.indexOf(comment._id)
-      this.name.comments.splice(index, 1)
+      const index = this.name.comments.indexOf(comment._id) // Find the comment index
+      this.name.comments.splice(index, 1) // Remove the comment from the array
     },
+    // Deletes a tag from the name and sends the delete request to the API
     deleteTag(tag) {
       console.log(tag)
       Api.delete('/v1/names/' + this.name._id + '/tags/' + tag)
         .then(response => {
-          const index = this.name.tags.indexOf(tag)
-          this.name.tags.splice(index, 1)
+          const index = this.name.tags.indexOf(tag) // Find the tag index
+          this.name.tags.splice(index, 1) // Remove the tag from the array
           console.log(response)
         })
         .catch(error => {
@@ -206,7 +213,7 @@ export default {
     }
   }
 }
-</script>
+<script>
 
 <style>
   .tags-box{
